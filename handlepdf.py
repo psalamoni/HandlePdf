@@ -47,9 +47,11 @@ def join():
     output = PdfFileWriter()
 
     for path in args.vars:
-        print(path)
-        os.path.normpath(path)
-        inputpdf = PdfFileReader(open(path, "rb"), strict=False)
+        try:
+            os.path.normpath(path)
+            inputpdf = PdfFileReader(open(path, "rb"), strict=False)
+        except:
+            print("Invalid path, try python3 handlepdf.py -j 'path1' 'path2' ... 'pathn'")
 
         for pagenw in range(inputpdf.getNumPages()):
             output.addPage(inputpdf.getPage(pagenw))
@@ -63,7 +65,49 @@ def join():
 
 
 def joinsplit():
-    print(2)
+    from PyPDF2 import PdfFileWriter, PdfFileReader
+    import os
+
+    global args
+
+    if len(args.vars)%3==0:
+
+        output = PdfFileWriter()
+
+        for rge in range(int(len(args.vars)/3)):
+
+            path = args.vars[rge*3]
+            try:
+                os.path.normpath(path)
+                inputpdf = PdfFileReader(open(path, "rb"), strict=False)
+            except:
+                print("Invalid path, try python3 handlepdf.py -js 'path1' InitialPage1 FinalPage1 'path2' InitialPage2 FinalPage2 ... 'pathN' InitialPageN FinalPageN")
+
+            initial_page = args.vars[rge*3+1]
+            final_page = args.vars[rge*3+2]
+
+            if initial_page.isdigit() and final_page.isdigit():
+
+                initial_page = int(initial_page)-1
+                final_page = int(final_page)
+
+                for pagenw in range(initial_page,final_page):
+                    output.addPage(inputpdf.getPage(pagenw))
+
+            else:
+                print("Invalid page number, try python3 handlepdf.py -js 'path1' InitialPage1 FinalPage1 'path2' InitialPage2 FinalPage2 ... 'pathN' InitialPageN FinalPageN")
+
+        output_patt = args.vars[0][:args.vars[0].rfind('/')+1]
+        
+        with open(output_patt + 'SplitJointPDF' + '.pdf', "wb") as outputStream:
+	        output.write(outputStream)
+        
+        print("PDFs joint successfully, please check the first path folder.")
+
+    else:
+        print("Invalid argument, try python3 handlepdf.py -js 'path1' InitialPage1 FinalPage1 'path2' InitialPage2 FinalPage2 ... 'pathN' InitialPageN FinalPageN")
+        exit()
+
 
 if args.split:
     split()
