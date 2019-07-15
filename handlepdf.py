@@ -19,7 +19,7 @@ def split():
     if all(x.isdigit() for x in args.vars[1:]) and len(args.vars[1:])%2==0:
         pages = args.vars[1:]
     else:
-        print("Invalid argument")
+        print("Invalid argument, try python3 handlepdf.py -s path InitialPage1 FinalPage1 InitialPage2 FinalPage2 ... InitialPageN FinalPageN")
         exit()
 
     inputpdf = PdfFileReader(open(path, "rb"), strict=False)
@@ -38,9 +38,6 @@ def split():
 
         with open(output_patt + '_' + str(initial_page+1) + '_' + str(final_page) + '.pdf', "wb") as outputStream:
 	        output.write(outputStream)    
-    
-    print (path)
-    print (pages)
 
 if args.split:
     split()
