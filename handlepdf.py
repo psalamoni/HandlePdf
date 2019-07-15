@@ -30,14 +30,46 @@ def split():
     
         output_patt = path.replace('.pdf', '')
 
-        print("teste")
-
         output = PdfFileWriter()
         for pagenw in range(initial_page,final_page):
             output.addPage(inputpdf.getPage(pagenw))
 
         with open(output_patt + '_' + str(initial_page+1) + '_' + str(final_page) + '.pdf', "wb") as outputStream:
-	        output.write(outputStream)    
+	        output.write(outputStream)
+    print("PDF splitted successfully, please check the origin folder.")    
+
+def join():
+    from PyPDF2 import PdfFileWriter, PdfFileReader
+    import os
+
+    global args
+
+    output = PdfFileWriter()
+
+    for path in args.vars:
+        print(path)
+        os.path.normpath(path)
+        inputpdf = PdfFileReader(open(path, "rb"), strict=False)
+
+        for pagenw in range(inputpdf.getNumPages()):
+            output.addPage(inputpdf.getPage(pagenw))
+    
+    output_patt = args.vars[0][:args.vars[0].rfind('/')+1]
+
+    with open(output_patt + 'JointPDF' + '.pdf', "wb") as outputStream:
+	        output.write(outputStream)
+    
+    print("PDFs joint successfully, please check the first path folder.")
+
+
+def joinsplit():
+    print(2)
 
 if args.split:
     split()
+elif args.join:
+    join()
+elif args.joinsplit:
+    joinsplit()
+else:
+    print("No command found, try -s for SplitPDF | -j for JoinPDF | -js for Join&SplitPDF")
