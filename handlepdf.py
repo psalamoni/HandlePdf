@@ -1,10 +1,12 @@
 import argparse
 
 parser = argparse.ArgumentParser()
+batchtest = parser.add_mutually_exclusive_group()
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-s", "--split", action="store_true")
 group.add_argument("-j", "--join", action="store_true")
 group.add_argument("-js", "--joinsplit", action="store_true")
+batchtest.add_argument("-b", "--batch", action="store_true")
 parser.add_argument("vars", nargs="*", type=str)
 args = parser.parse_args()
 
@@ -63,7 +65,6 @@ def join():
     
     print("PDFs joint successfully, please check the first path folder.")
 
-
 def joinsplit():
     from PyPDF2 import PdfFileWriter, PdfFileReader
     import os
@@ -108,12 +109,33 @@ def joinsplit():
         print("Invalid argument, try python3 handlepdf.py -js 'path1' InitialPage1 FinalPage1 'path2' InitialPage2 FinalPage2 ... 'pathN' InitialPageN FinalPageN")
         exit()
 
+if args.batch:
+    import os
+    import csv
 
-if args.split:
-    split()
-elif args.join:
-    join()
-elif args.joinsplit:
-    joinsplit()
+    pathcsv = args.vars[0]
+    os.path.normpath(pathcsv)
+
+    with open(pathcsv, 'r') as f:
+        reader = csv.reader(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        paths = list(reader)
+
+    if args.split:
+        for path in paths:
+            print (path)
+            args.vars[0] = path[0]
+            split()
+    elif args.join:
+        args = paths
+        join()
+    else:
+        print("No command found, try -b -s for batch SplitPDF | -b -j for batch JoinPDF | no Join&SplitPDF for batch file supported")
 else:
-    print("No command found, try -s for SplitPDF | -j for JoinPDF | -js for Join&SplitPDF")
+    if args.split:
+        split()
+    elif args.join:
+        join()
+    elif args.joinsplit:
+        joinsplit()
+    else:
+        print("No command found, try -s for SplitPDF | -j for JoinPDF | -js for Join&SplitPDF")
