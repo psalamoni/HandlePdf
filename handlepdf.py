@@ -10,12 +10,13 @@ batchtest.add_argument("-b", "--batch", action="store_true")
 parser.add_argument("vars", nargs="*", type=str)
 args = parser.parse_args()
 
-def split():
+def split(batch):
     from PyPDF2 import PdfFileWriter, PdfFileReader
     import os
     
     global args
 
+    args.vars = list(filter(None, args.vars))
     path = args.vars[0]
     os.path.normpath(path)
     if all(x.isdigit() for x in args.vars[1:]) and len(args.vars[1:])%2==0:
@@ -30,7 +31,13 @@ def split():
         initial_page = int(pages[rge*2])-1
         final_page = int(pages[rge*2+1])
     
-        output_patt = path.replace('.pdf', '')
+        if batch:
+            output_patt = savepath
+            name = path[path.rfind('/'):]
+            name = name.replace('.pdf', '')
+            output_patt = output_patt + name
+        else:    
+            output_patt = path.replace('.pdf', '')
 
         output = PdfFileWriter()
         for pagenw in range(initial_page,final_page):
@@ -113,7 +120,9 @@ if args.batch:
     import os
     import csv
 
+    batchcsv = args.vars[1:]
     pathcsv = args.vars[0]
+    savepath = args.vars[1]
     os.path.normpath(pathcsv)
 
     with open(pathcsv, 'r') as f:
@@ -121,10 +130,10 @@ if args.batch:
         paths = list(reader)
 
     if args.split:
-        for path in paths:
-            print (path)
-            args.vars[0] = path[0]
-            split()
+        for newarg in paths:
+            print (newarg)
+            args.vars = newarg
+            split(True)
     elif args.join:
         args = paths
         join()
@@ -132,7 +141,7 @@ if args.batch:
         print("No command found, try -b -s for batch SplitPDF | -b -j for batch JoinPDF | no Join&SplitPDF for batch file supported")
 else:
     if args.split:
-        split()
+        split(False)
     elif args.join:
         join()
     elif args.joinsplit:
