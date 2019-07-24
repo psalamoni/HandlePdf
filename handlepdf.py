@@ -3,11 +3,13 @@ import argparse
 parser = argparse.ArgumentParser()
 batchtest = parser.add_mutually_exclusive_group()
 group = parser.add_mutually_exclusive_group()
+delete = parser.add_mutually_exclusive_group()
 group.add_argument("-s", "--split", action="store_true")
 group.add_argument("-x", "--explode", action="store_true")
 group.add_argument("-j", "--join", action="store_true")
 group.add_argument("-js", "--joinsplit", action="store_true")
 batchtest.add_argument("-b", "--batch", action="store_true")
+delete.add_argument("-del", "--delete", action="store_true")
 parser.add_argument("vars", nargs="*", type=str)
 args = parser.parse_args()
 
@@ -78,6 +80,9 @@ def explode(batch):
 
         with open(output_patt + '_' + str(pagenw+1) + '.pdf', "wb") as outputStream:
 	        output.write(outputStream)
+        
+    if args.delete:
+        os.remove(path)
     print("PDF splitted successfully, please check the origin folder.")
 
 def join():
@@ -156,7 +161,7 @@ if args.batch:
     batchcsv = args.vars[1:]
     pathcsv = args.vars[0]
     savepath = None
-    if len(args.vars)>=1:
+    if len(args.vars)>1:
         savepath = args.vars[1]
     os.path.normpath(pathcsv)
 
@@ -177,9 +182,9 @@ if args.batch:
             print (newarg)
             args.vars = newarg
             if savepath==None:
-                split(False)
+                explode(False)
             else:
-                split(True)    
+                explode(True)    
     elif args.join:
         args = paths
         join()
