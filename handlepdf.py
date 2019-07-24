@@ -4,6 +4,7 @@ parser = argparse.ArgumentParser()
 batchtest = parser.add_mutually_exclusive_group()
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-s", "--split", action="store_true")
+group.add_argument("-x", "--explode", action="store_true")
 group.add_argument("-j", "--join", action="store_true")
 group.add_argument("-js", "--joinsplit", action="store_true")
 batchtest.add_argument("-b", "--batch", action="store_true")
@@ -17,6 +18,8 @@ def split(batch):
     global args
 
     args.vars = list(filter(None, args.vars))
+    if len(args.vars)<=1:
+        return
     path = args.vars[0]
     os.path.normpath(path)
     if all(x.isdigit() for x in args.vars[1:]) and len(args.vars[1:])%2==0:
@@ -46,6 +49,36 @@ def split(batch):
         with open(output_patt + '_' + str(initial_page+1) + '_' + str(final_page) + '.pdf', "wb") as outputStream:
 	        output.write(outputStream)
     print("PDF splitted successfully, please check the origin folder.")    
+
+def explode(batch):
+    from PyPDF2 import PdfFileWriter, PdfFileReader
+    import os
+    
+    global args
+
+    if len(args.vars)==0:
+        return
+    path = args.vars[0]
+    os.path.normpath(path)
+
+    inputpdf = PdfFileReader(open(path, "rb"), strict=False)
+
+    if batch:
+        output_patt = savepath
+        name = path[path.rfind('/'):]
+        name = name.replace('.pdf', '')
+        output_patt = output_patt + name
+    else:    
+        output_patt = path.replace('.pdf', '')
+    
+    for pagenw in range(inputpdf.getNumPages()):
+        
+        output = PdfFileWriter()
+        output.addPage(inputpdf.getPage(pagenw))
+
+        with open(output_patt + '_' + str(pagenw+1) + '.pdf', "wb") as outputStream:
+	        output.write(outputStream)
+    print("PDF splitted successfully, please check the origin folder.")
 
 def join():
     from PyPDF2 import PdfFileWriter, PdfFileReader
@@ -122,7 +155,9 @@ if args.batch:
 
     batchcsv = args.vars[1:]
     pathcsv = args.vars[0]
-    savepath = args.vars[1]
+    savepath = None
+    if len(args.vars)>=1:
+        savepath = args.vars[1]
     os.path.normpath(pathcsv)
 
     with open(pathcsv, 'r') as f:
@@ -133,7 +168,18 @@ if args.batch:
         for newarg in paths:
             print (newarg)
             args.vars = newarg
-            split(True)
+            if savepath==None:
+                split(False)
+            else:
+                split(True)
+    elif args.explode:
+        for newarg in paths:
+            print (newarg)
+            args.vars = newarg
+            if savepath==None:
+                split(False)
+            else:
+                split(True)    
     elif args.join:
         args = paths
         join()
