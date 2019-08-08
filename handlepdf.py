@@ -197,5 +197,7 @@ else:
         join()
     elif args.joinsplit:
         joinsplit()
+    elif args.explode:
+        explode(False)
     else:
         print("No command found, try -s for SplitPDF | -j for JoinPDF | -js for Join&SplitPDF")
